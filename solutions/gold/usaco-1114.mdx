@@ -134,7 +134,7 @@ public class ModernArt3 {
 
 <Spoiler title="Optimization">
 
-Generally, the structure of range DP is pretty fixed, but the collapsible structure of this painting lets you skip "most" splits by modifying the approach.
+Generally, the structure of range DP yields an $O(n^3)$ solution, but the collapsible structure of this painting lets you skip most splits.
 
 **Key idea.** Let $a$ be the array after **run-length compression** (merge consecutive equal colors). Define
 $$
@@ -145,11 +145,11 @@ dp[i][j]
     \big(dp[i][k-1]+dp[k][j-1]\big)
 \Big),
 $$
-with $dp[i][i-1]=0$.
+with the convention $dp[i][i-1]=0$.
 
-This is correct by the last stroke argument: the final stroke must paint $j$ with color $a[j]$. Either it paints only $j$ (first term) or it also covers some earlier $k$ with the same color (second term). Splits with $a[k]\ne a[j]$ cannot share the last stroke and are never better than painting $j$ alone.
+This is correct by the **last stroke** argument: the final stroke must paint $j$ with color $a[j]$. Either it paints only $j$ (first term) or it also covers some earlier $k$ with the same color (second term). Splits with $a[k]\ne a[j]$ cannot share the last stroke and are never better than painting $j$ alone.
 
-This optimization keeps the same worst-case bound of $O(n^3)$ in many repeats such as "01010101...." but is much faster in practice.
+This optimization keeps the same worst-case bound but is much faster in practice, often close to $O(n^2)$ after compression.
 
 <LanguageSection>
 
