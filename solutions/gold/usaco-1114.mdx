@@ -131,3 +131,83 @@ public class ModernArt3 {
 </LanguageSection>
 
 </Spoiler>
+
+<Spoiler title="Optimization">
+
+Generally, the structure of range DP is pretty fixed, but the collapsible structure of this painting lets you skip "most" splits by modifying the approach.
+
+**Key idea.** Let $a$ be the array after **run-length compression** (merge consecutive equal colors). Define
+$$
+dp[i][j]
+=\min\Big(
+  dp[i][j-1]+1,\;
+  \min_{\substack{i\le k<j\\ a[k]=a[j]}}
+    \big(dp[i][k-1]+dp[k][j-1]\big)
+\Big),
+$$
+with $dp[i][i-1]=0$.
+
+This is correct by the last stroke argument: the final stroke must paint $j$ with color $a[j]$. Either it paints only $j$ (first term) or it also covers some earlier $k$ with the same color (second term). Splits with $a[k]\ne a[j]$ cannot share the last stroke and are never better than painting $j$ alone.
+
+This optimization keeps the same worst-case bound of $O(n^3)$ in many repeats such as "01010101...." but is much faster in practice.
+
+<LanguageSection>
+
+<CPPSection>
+
+```cpp
+// CodeSnip{CPP Short Template}
+// Modern Art 3 — optimized "same-color end" DP with run-length compression.
+
+int main(){
+  setIO();
+
+  int n; cin>>n;
+  vi a(n);
+  for(int i = 0; i < n; i++) cin>>a[i];
+
+  // Run-length compress consecutive equal colors.
+  vi b; b.reserve(n);
+  for(int i = 0; i < n; i++) {
+    if(b.empty() || b.back() != a[i]) {
+      b.pb(a[i]);
+    }
+  }
+  n = b.size();
+  if(n == 0){
+    cout<<0<<endl;
+    return 0;
+  }
+
+  // prev[j] = previous index < j with same color as b[j], or -1.
+  int mx = 0;
+  f(i,n) mx = max(mx, b[i]);
+  vi last(mx+1, -1), prev(n, -1);
+  f(j,n){
+    prev[j] = last[b[j]];
+    last[b[j]] = j;
+  }
+
+  vector<vi> dp(n, vi(n, 0));
+  for(int i=n-1; i>=0; --i){
+    dp[i][i] = 1;
+    for(int j = i+1; j<n; ++j){
+      // paint j alone;
+      int best = dp[i][j-1] + 1;
+      for(int k = prev[j]; k >= i; k = prev[k]) {
+        // only same-color splits
+        best = min(best, (k==i ? 0 : dp[i][k-1]) + dp[k][j-1]);
+      }
+      dp[i][j]=best;
+    }
+  }
+  cout << dp[0][n-1] << endl;
+  return 0;
+}
+```
+
+</CPPSection>
+
+</LanguageSection>
+
+</Spoiler>
